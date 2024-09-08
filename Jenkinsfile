@@ -7,5 +7,10 @@ pipeline {
         sh "python --version"
       }
     }
+    stage('terraform'){
+        steps{
+            sh "terraform init"
+        }
+    }
   }
 }
