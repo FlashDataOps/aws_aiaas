@@ -1,9 +1,11 @@
 pipeline {
-    agent any
+    agent {
+        docker { image 'python:latest' }
+    }
     stages {
-        stage('Terraform init') {
+        stage('python init') {
             steps {
-                sh 'terraform --version'
+                sh 'python --version'
             }
         }
     }
