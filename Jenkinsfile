@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'hashicorp/terraform:latest' // Specify the version you need
-        }
-    }
+    agent any
     stages {
         stage('Terraform init') {
             steps {
