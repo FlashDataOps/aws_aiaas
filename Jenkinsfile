@@ -1,8 +1,7 @@
 pipeline {
     agent {
         docker {
-            image 'hashicorp/terraform:1.5.3'
-            args '-v /var/jenkins_home/workspace/aws_aiaas:/var/jenkins_home/workspace/aws_aiaas'
+            image 'hashicorp/terraform:latest' // Specify the version you need
         }
     }
     stages {
