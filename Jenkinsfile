@@ -20,11 +20,7 @@ pipeline {
         }
       }
       environment {
-        // AWS_CREDENTIALS = credentials('aws-credentials') // The ID of your Jenkins credentials
-        // TF_VAR_aws_access_key = "${AWS_CREDENTIALS_USR}"
-        // TF_VAR_aws_secret_key = "${AWS_CREDENTIALS_PSW}"
         TF_VAR_aws_region = 'us-east-1'
-        TF_VAR_aws_account_id = '820242918450'
       }
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
