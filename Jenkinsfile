@@ -32,5 +32,6 @@ pipeline {
           terraform apply -auto-approve -target=aws_ecr_repository.hello_world
         '''
       }
+    }
   }
 }
