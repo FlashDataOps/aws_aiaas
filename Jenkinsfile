@@ -28,6 +28,7 @@ pipeline {
       }
       steps {
         sh '''
+          cd terraform
           terraform init
           terraform apply -auto-approve -target=aws_ecr_repository.hello_world
         '''
