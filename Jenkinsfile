@@ -39,8 +39,7 @@ pipeline {
       agent {
         docker {
           image 'amazon/aws-cli:latest'
-          // Run sudo chmod 666 /var/run/docker.sock on the host to allow access to Docker daemon
-          args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
+          args '-v /var/run/docker.sock:/var/run/docker.sock --user root --entrypoint='
         }
       }
       environment {
