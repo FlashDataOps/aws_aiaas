@@ -37,12 +37,6 @@ pipeline {
     }
     stage('AWS Docker Stage') {
       agent any
-      // agent {
-      //   docker {
-      //     image 'amazon/aws-cli:latest'
-      //     args '-v /var/run/docker.sock:/var/run/docker.sock --user root --entrypoint='
-      //   }
-      // }
       environment {
         AWS_REGION = 'us-east-1' // Replace with your preferred region
         AWS_ACCOUNT_ID = '820242918450'
