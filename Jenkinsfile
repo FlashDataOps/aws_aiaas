@@ -36,12 +36,13 @@ pipeline {
       }
     }
     stage('AWS Docker Stage') {
-      agent {
-        docker {
-          image 'amazon/aws-cli:latest'
-          args '-v /var/run/docker.sock:/var/run/docker.sock --user root --entrypoint='
-        }
-      }
+      agent any
+      // agent {
+      //   docker {
+      //     image 'amazon/aws-cli:latest'
+      //     args '-v /var/run/docker.sock:/var/run/docker.sock --user root --entrypoint='
+      //   }
+      // }
       environment {
         AWS_REGION = 'us-east-1' // Replace with your preferred region
         AWS_ACCOUNT_ID = '820242918450'
@@ -53,13 +54,11 @@ pipeline {
                   accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                   secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
                   sh '''
+                    $ alias aws='docker run --rm -ti -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
                     aws --version
                     aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
                     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
                     aws configure set region $AWS_REGION
-
-                    # Install Docker CLI
-                    yum install -y docker
                     
                     # Log in to AWS ECR
                     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
