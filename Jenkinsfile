@@ -28,7 +28,7 @@ pipeline {
                           accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
             sh '''
-              cd terraform
+              cd terraform/ecr
               terraform init
               terraform apply -auto-approve -target=aws_ecr_repository.hello_world
             '''
@@ -63,6 +63,31 @@ pipeline {
                     docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
                   '''
                 }
+      }
+    }
+    stage('Terraform - Create ECS') {
+      agent {
+        docker {
+          image 'hashicorp/terraform:light'
+          args '-i --entrypoint='
+        }
+      }
+      environment {
+        TF_VAR_aws_region = 'us-east-1'
+        TF_VAR_aws_account_id = '820242918450'
+        TF_VAR_aws_ecr_repo = 'hello-world'
+      }
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws-credentials',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+            sh '''
+              cd terraform/ecs
+              terraform init
+              terraform apply -auto-approve
+            '''
+        }
       }
     }
   }
