@@ -35,5 +35,40 @@ pipeline {
         }
       }
     }
+    stage('AWS Docker Stage') {
+      agent {
+        docker {
+          image 'amazon/aws-cli:latest'
+          // Run sudo chmod 666 /var/run/docker.sock on the host to allow access to Docker daemon
+          args '-v /var/run/docker.sock:/var/run/docker.sock --user root'
+        }
+      }
+      environment {
+        AWS_REGION = 'us-east-1' // Replace with your preferred region
+        AWS_ACCOUNT_ID = '820242918450'
+        ECR_REPO = 'hello-world' // Name of your ECR repository
+      }
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                  credentialsId: 'aws-credentials',
+                  accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                  secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+                  sh '''
+                    aws --version
+                    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                    aws configure set region $AWS_REGION
+                    
+                    # Log in to AWS ECR
+                    aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+                    
+                    # Build and push the Docker image to ECR
+                    docker build --platform linux/amd64 -t $ECR_REPO .
+                    docker tag $ECR_REPO:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
+                    docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:latest
+                  '''
+                }
+      }
+    }
   }
 }
