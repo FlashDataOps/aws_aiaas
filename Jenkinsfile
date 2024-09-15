@@ -1,12 +1,36 @@
 pipeline {
-    agent {
-        docker { image 'python:latest' }
+  agent none
+  stages {
+    stage('Python Stage') {
+      agent { 
+        docker { 
+          image 'python:latest' // Python Docker image
+        } 
+      }
+      steps {
+        sh "python --version" // Run Python commands
+        sh "python HelloWorld.py"
+      }
     }
-    stages {
-        stage('python init') {
-            steps {
-                sh 'python --version'
-            }
+    stage('Terraform - Create ECR Repository') {
+      agent {
+        docker {
+          image 'hashicorp/terraform:light'
+          args '-i --entrypoint='
         }
-    }
+      }
+      environment {
+        AWS_CREDENTIALS = credentials('aws-credentials') // The ID of your Jenkins credentials
+        TF_VAR_aws_access_key = "${AWS_CREDENTIALS_USR}"
+        TF_VAR_aws_secret_key = "${AWS_CREDENTIALS_PSW}"
+        TF_VAR_aws_region = 'us-east-1'
+        TF_VAR_aws_account_id = '820242918450'
+      }
+      steps {
+        sh '''
+          terraform init
+          terraform apply -auto-approve -target=aws_ecr_repository.hello_world
+        '''
+      }
+  }
 }
