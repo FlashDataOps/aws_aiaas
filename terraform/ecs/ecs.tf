@@ -6,7 +6,7 @@ resource "aws_apprunner_service" "example" {
       image_configuration {
         port = "8080"
       }
-      image_identifier      = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repo}:latest"
+      image_identifier      = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.aws_ecr_repo}:latest"
       image_repository_type = "ECR"
     }
     auto_deployments_enabled = false
