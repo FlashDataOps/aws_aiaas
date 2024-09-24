@@ -21,6 +21,9 @@ pipeline {
       }
       environment {
         TF_VAR_aws_region = 'us-east-1'
+        AWS_REGION = 'us-east-1' // Replace with your preferred region
+        AWS_ACCOUNT_ID = '820242918450'
+        ECR_REPO = 'hello-world' // Name of your ECR repository
       }
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
@@ -30,7 +33,8 @@ pipeline {
             sh '''
               cd terraform/ecr
               terraform init
-              terraform apply -auto-approve -target=aws_ecr_repository.hello_world
+              terraform import aws_ecr_repository.hello_world ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME} || echo "ECR repository already managed."
+              terraform apply -auto-approve
             '''
         }
       }
