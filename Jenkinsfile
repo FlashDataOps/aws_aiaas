@@ -33,7 +33,7 @@ pipeline {
             sh '''
               cd terraform/ecr
               terraform init
-              terraform import aws_ecr_repository.${ECR_REPO} ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO} || echo "ECR repository already managed."
+              terraform import aws_ecr_repository.hello_world ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO} || echo "ECR repository already managed."
               terraform apply -auto-approve
             '''
         }
