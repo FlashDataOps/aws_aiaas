@@ -32,9 +32,22 @@ pipeline {
                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
             sh '''
               cd terraform/ecr
-              terraform init
-              terraform import aws_ecr_repository.hello_world ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO} || echo "ECR repository already managed."
-              terraform apply -auto-approve
+              aws --version
+              aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+              aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+              aws configure set region $AWS_REGION
+              
+              # Log in to AWS ECR
+              aws ecr get-login-password --region $AWS_REGION
+
+              # Check if ECR Repo already exists in account 
+              EXISTING_REPO=$(aws ecr describe-repositories --repository-names ${ECR_REPO} --region ${AWS_REGION} --query 'repositories[0].repositoryName' --output text || echo "null")
+              if [ "$EXISTING_REPO" == "null" ]; then
+                  terraform init
+                  terraform apply -auto-approve
+              else
+                  echo "ECR repository ${ECR_REPO} already exists."
+              fi
             '''
         }
       }
