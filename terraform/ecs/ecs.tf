@@ -3,13 +3,13 @@ resource "aws_apprunner_service" "example" {
 
   source_configuration {
     authentication_configuration {
-      access_role_arn = aws_iam_role.access_role.arn
+      access_role_arn = aws_iam_role.ecr_access_role.arn
     }
     image_repository {
       image_configuration {
         port = "8080"
       }
-      image_identifier      = "${aws_ecr_repository.example.repository_url}:latest"
+      image_identifier      = "${var.aws_account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.aws_ecr_repo}:latest"
       image_repository_type = "ECR"
     }
     auto_deployments_enabled = false
