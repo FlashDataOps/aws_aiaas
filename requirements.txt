@@ -1,3 +1,5 @@
 streamlit
 langchain_aws
 botocore
+cmake
+pyarrow
