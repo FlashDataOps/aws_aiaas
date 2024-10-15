@@ -33,7 +33,7 @@ resource "aws_iam_role_policy_attachment" "beanstalk_policy" {
 resource "aws_elastic_beanstalk_environment" "montybot_env" {
   name                = "MontyBotEnv"
   application         = aws_elastic_beanstalk_application.montybot.name
-  solution_stack_name = "64bit Amazon Linux 2 v3.3.10 running Docker"
+  solution_stack_name = "64bit Amazon Linux 2 v4.0.3 running Docker"
 
   setting {
     namespace = "aws:elasticbeanstalk:container:docker"
