@@ -201,30 +201,70 @@ pipeline {
         }
       }
     }
-    stage('Terraform - Create ECS') {
-      agent {
-        docker {
-          image 'hashicorp/terraform:light'
-          args '-i --entrypoint='
-        }
+    stage('Check Beanstalk Application and IAM Role Exists') {
+      steps {
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                            credentialsId: 'aws-credentials',
+                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+              script {
+                  // Check if the Elastic Beanstalk application exists
+                  def beanstalkAppExists = sh(script: '''
+                      alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+                      aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                      aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                      aws configure set region $AWS_REGION
+
+                      APP_EXISTS=$(aws elasticbeanstalk describe-applications --application-names ${BEANSTALK_APP_NAME} --region ${AWS_REGION} --query 'Applications[0].ApplicationName' --output text || echo "null")
+                      echo $APP_EXISTS
+                  ''', returnStdout: true).trim()
+
+                  echo "Beanstalk application existence check result: ${beanstalkAppExists}"
+                  if (beanstalkAppExists == 'null') {
+                      env.BEANSTALK_APP_EXISTS = "false"
+                  } else {
+                      env.BEANSTALK_APP_EXISTS = "true"
+                  }
+
+                  // Check if the IAM Role exists
+                  def iamRoleExists = sh(script: '''
+                      alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+                      aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                      aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                      aws configure set region $AWS_REGION
+
+                      ROLE_EXISTS=$(aws iam get-role --role-name ${IAM_ROLE_NAME} --region ${AWS_REGION} --query 'Role.RoleName' --output text || echo "null")
+                      echo $ROLE_EXISTS
+                  ''', returnStdout: true).trim()
+
+                  echo "IAM Role existence check result: ${iamRoleExists}"
+                  if (iamRoleExists == 'null') {
+                      env.IAM_ROLE_EXISTS = "false"
+                  } else {
+                      env.IAM_ROLE_EXISTS = "true"
+                  }
+              }
+          }
       }
-      environment {
-        TF_VAR_aws_region = 'us-east-1'
-        TF_VAR_aws_account_id = '820242918450'
-        TF_VAR_aws_ecr_repo = 'hello-world'
+  }
+    stage('Create Beanstalk Application with Terraform') {
+      when {
+          expression {
+              return env.BEANSTALK_APP_EXISTS == "false" && env.IAM_ROLE_EXISTS == "false"
+          }
       }
       steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                          credentialsId: 'aws-credentials',
-                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-            sh '''
-              cd terraform/ecs
-              terraform init
-              terraform apply -auto-approve
-            '''
-        }
+          withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                            credentialsId: 'aws-credentials',
+                            accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                            secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+              sh '''
+                cd terraform/ecs
+                terraform init
+                terraform apply -auto-approve
+              '''
+          }
+          }
       }
-    }
   }
 }
