@@ -262,6 +262,11 @@ pipeline {
           args '-i --entrypoint='
         }
       }
+        environment {
+          TF_VAR_aws_region = 'us-east-1'
+          TF_VAR_aws_account_id = '820242918450'
+          TF_VAR_aws_ecr_repo = 'hello-world'
+        }
       // when {
       //     expression {
       //         return env.BEANSTALK_APP_EXISTS == "false" && env.IAM_ROLE_EXISTS == "false" && env.BEANSTALK_ENV_EXISTS == "false"
