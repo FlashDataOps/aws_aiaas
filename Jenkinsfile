@@ -4,7 +4,7 @@ pipeline {
         AWS_REGION = 'us-east-1' // Replace with your preferred region
         AWS_ACCOUNT_ID = '820242918450'
         ECR_REPO = 'hello-world' // Name of your ECR repository
-        S3_BUCKET = 'your-s3-bucket-name' // Replace with your S3 bucket name
+        S3_BUCKET = 'beanstalk-app-version-bucket' // Replace with your S3 bucket name
   }
   stages {
     stage('Python Stage') {
