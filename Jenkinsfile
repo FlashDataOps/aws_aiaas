@@ -140,7 +140,7 @@ pipeline {
       environment {
         TF_VAR_aws_region = 'us-east-1'
         TF_VAR_s3_bucket_name = 'beanstalk-app-version-bucket' // Your bucket name here
-        TF_VAR_aws_region = 'us-east-1'
+        TF_VAR_aws_account_id = '820242918450'
       }
       when {
         expression {
