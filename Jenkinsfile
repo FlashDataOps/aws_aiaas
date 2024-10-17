@@ -202,6 +202,11 @@ pipeline {
       }
     }
     stage('Check Beanstalk Application and IAM Role Exists') {
+      agent any // Running on any agent
+      environment {
+        BEANSTALK_APP_EXISTS = "" // This will store whether the S3 bucket exists or not
+        IAM_ROLE_EXISTS = "" // This will store whether the S3 bucket exists or not
+      }
       steps {
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                             credentialsId: 'aws-credentials',
@@ -248,6 +253,12 @@ pipeline {
       }
   }
     stage('Create Beanstalk Application with Terraform') {
+      agent {
+        docker {
+          image 'hashicorp/terraform:light'
+          args '-i --entrypoint='
+        }
+      }
       when {
           expression {
               return env.BEANSTALK_APP_EXISTS == "false" && env.IAM_ROLE_EXISTS == "false"
