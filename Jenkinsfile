@@ -100,6 +100,36 @@ pipeline {
                 }
       }
     }
+    stage('Check S3 Bucket Exists') {
+      agent any // Running on any agent
+      environment {
+        BUCKET_EXISTS = "" // This will store whether the S3 bucket exists or not
+      }
+      steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+                          credentialsId: 'aws-credentials',
+                          accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                          secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+            script {
+                // Check if S3 bucket exists using AWS CLI
+                BUCKET_EXISTS = sh(script: '''
+                    alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+                    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+                    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+                    aws configure set region $AWS_REGION
+
+                    EXISTING_BUCKET=$(aws s3api head-bucket --bucket ${S3_BUCKET} --region ${AWS_REGION} 2>&1 || echo "null")
+                    echo $EXISTING_BUCKET
+                ''', returnStdout: true).trim()
+
+                // Logging for visibility
+                echo "S3 bucket existence check result: ${BUCKET_EXISTS}"
+            }
+        }
+      }
+    }
+
+    // Stage to create the S3 bucket using Terraform if it doesn't exist
     stage('Create S3 Bucket with Terraform') {
       agent {
         docker {
@@ -109,19 +139,24 @@ pipeline {
       }
       environment {
         TF_VAR_aws_region = 'us-east-1'
-        TF_VAR_aws_account_id = '820242918450'
-        TF_VAR_s3_bucket_name = "${S3_BUCKET}"
+        TF_VAR_s3_bucket_name = 'beanstalk-app-version-bucket' // Your bucket name here
+        TF_VAR_aws_region = 'us-east-1'
+      }
+      when {
+        expression {
+          return BUCKET_EXISTS == 'null' // Proceed only if the bucket does not exist
+        }
       }
       steps {
         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                           credentialsId: 'aws-credentials',
                           accessKeyVariable: 'AWS_ACCESS_KEY_ID',
                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-          sh '''
-            cd terraform/s3
-            terraform init
-            terraform apply -auto-approve
-          '''
+            sh '''
+              cd terraform/s3
+              terraform init
+              terraform apply -auto-approve
+            '''
         }
       }
     }
