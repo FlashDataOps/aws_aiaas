@@ -262,11 +262,11 @@ pipeline {
           args '-i --entrypoint='
         }
       }
-      when {
-          expression {
-              return env.BEANSTALK_APP_EXISTS == "false" && env.IAM_ROLE_EXISTS == "false" && env.BEANSTALK_ENV_EXISTS == "false"
-          }
-      }
+      // when {
+      //     expression {
+      //         return env.BEANSTALK_APP_EXISTS == "false" && env.IAM_ROLE_EXISTS == "false" && env.BEANSTALK_ENV_EXISTS == "false"
+      //     }
+      // }
       steps {
           withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
                             credentialsId: 'aws-credentials',
