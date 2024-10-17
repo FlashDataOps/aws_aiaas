@@ -201,60 +201,60 @@ pipeline {
         }
       }
     }
-            stage('Check Beanstalk Application, IAM Role, and Environment Exists') {
-            agent any // Running on any agent
-            environment {
-                BEANSTALK_APP_EXISTS = "" // This will store whether the Beanstalk application exists
-                IAM_ROLE_EXISTS = "" // This will store whether the IAM role exists
-                BEANSTALK_ENV_EXISTS = "" // This will store whether the Beanstalk environment exists
-            }
-            steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
-                                  credentialsId: 'aws-credentials',
-                                  accessKeyVariable: 'AWS_ACCESS_KEY_ID',
-                                  secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
-                    script {
-                        // Check if the Elastic Beanstalk application exists
-                        BEANSTALK_APP_EXISTS = sh(script: '''
-                            alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
-                            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                            aws configure set region $AWS_REGION
+        //     stage('Check Beanstalk Application, IAM Role, and Environment Exists') {
+        //     agent any // Running on any agent
+        //     environment {
+        //         BEANSTALK_APP_EXISTS = "" // This will store whether the Beanstalk application exists
+        //         IAM_ROLE_EXISTS = "" // This will store whether the IAM role exists
+        //         BEANSTALK_ENV_EXISTS = "" // This will store whether the Beanstalk environment exists
+        //     }
+        //     steps {
+        //         withCredentials([[$class: 'AmazonWebServicesCredentialsBinding',
+        //                           credentialsId: 'aws-credentials',
+        //                           accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+        //                           secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]) {
+        //             script {
+        //                 // Check if the Elastic Beanstalk application exists
+        //                 BEANSTALK_APP_EXISTS = sh(script: '''
+        //                     alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+        //                     aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        //                     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        //                     aws configure set region $AWS_REGION
 
-                            APP_EXISTS=$(aws elasticbeanstalk describe-applications --application-names ${BEANSTALK_APP_NAME} --region ${AWS_REGION} --query 'Applications[0].ApplicationName' --output text || echo "null")
-                            echo $APP_EXISTS
-                        ''', returnStdout: true).trim()
+        //                     APP_EXISTS=$(aws elasticbeanstalk describe-applications --application-names ${BEANSTALK_APP_NAME} --region ${AWS_REGION} --query 'Applications[0].ApplicationName' --output text || echo "null")
+        //                     echo $APP_EXISTS
+        //                 ''', returnStdout: true).trim()
 
-                        // Check if the IAM role exists
-                        IAM_ROLE_EXISTS = sh(script: '''
-                            alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
-                            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                            aws configure set region $AWS_REGION
+        //                 // Check if the IAM role exists
+        //                 IAM_ROLE_EXISTS = sh(script: '''
+        //                     alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+        //                     aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        //                     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        //                     aws configure set region $AWS_REGION
 
-                            ROLE_EXISTS=$(aws iam get-role --role-name ${IAM_ROLE_NAME} --query 'Role.RoleName' --output text || echo "null")
-                            echo $ROLE_EXISTS
-                        ''', returnStdout: true).trim()
+        //                     ROLE_EXISTS=$(aws iam get-role --role-name ${IAM_ROLE_NAME} --query 'Role.RoleName' --output text || echo "null")
+        //                     echo $ROLE_EXISTS
+        //                 ''', returnStdout: true).trim()
 
-                        // Check if the Elastic Beanstalk environment exists
-                        BEANSTALK_ENV_EXISTS = sh(script: '''
-                            alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
-                            aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
-                            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
-                            aws configure set region $AWS_REGION
+        //                 // Check if the Elastic Beanstalk environment exists
+        //                 BEANSTALK_ENV_EXISTS = sh(script: '''
+        //                     alias aws='docker run --rm -v ~/.aws:/root/.aws -v $(pwd):/aws amazon/aws-cli'
+        //                     aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID
+        //                     aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+        //                     aws configure set region $AWS_REGION
 
-                            ENV_EXISTS=$(aws elasticbeanstalk describe-environments --environment-names ${BEANSTALK_ENV_NAME} --region ${AWS_REGION} --query 'Environments[0].EnvironmentName' --output text || echo "null")
-                            echo $ENV_EXISTS
-                        ''', returnStdout: true).trim()
+        //                     ENV_EXISTS=$(aws elasticbeanstalk describe-environments --environment-names ${BEANSTALK_ENV_NAME} --region ${AWS_REGION} --query 'Environments[0].EnvironmentName' --output text || echo "null")
+        //                     echo $ENV_EXISTS
+        //                 ''', returnStdout: true).trim()
 
-                        // Logging for visibility
-                        echo "Elastic Beanstalk application existence check result: ${BEANSTALK_APP_EXISTS}"
-                        echo "IAM role existence check result: ${IAM_ROLE_EXISTS}"
-                        echo "Elastic Beanstalk environment existence check result: ${BEANSTALK_ENV_EXISTS}"
-                    }
-                }
-            }
-        }
+        //                 // Logging for visibility
+        //                 echo "Elastic Beanstalk application existence check result: ${BEANSTALK_APP_EXISTS}"
+        //                 echo "IAM role existence check result: ${IAM_ROLE_EXISTS}"
+        //                 echo "Elastic Beanstalk environment existence check result: ${BEANSTALK_ENV_EXISTS}"
+        //             }
+        //         }
+        //     }
+        // }
     stage('Create Beanstalk Application with Terraform') {
       agent {
         docker {
